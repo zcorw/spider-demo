@@ -7,6 +7,5 @@ url:
 list:
   - name: 
     group: 
-    filename: 
-    part: 
+    id:
 ```
