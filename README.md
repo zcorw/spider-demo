@@ -3,6 +3,7 @@
 配置为一个yaml文件，文件名为target.yml
 结构为
 ```
+host:
 url: 
 list:
   - name: 

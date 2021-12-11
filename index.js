@@ -34,28 +34,42 @@ const enterProcessor = ($) => {
   });
   return filertList.map((item) => {
     return {
-      url: item[2].replace('http', 'https'),
-      name: item[1],
+      url: item[2].replace(/^http(s)?:\/\/[\w\.]+\//, targetConf.host),
+      name: item[1].match(/^\[(.+)\]\[(.+)\]\[(.+)\]/)[2],
     }
   });
 }
 // 目标页面获取 torrent 下载链接
-const productProcessor = ($, url) => {
-  const [host] = url.match(/^http(s)?:\/\/[^\/]+\//g);
-  const name = tmpList.find(item => item.url === url).name;
+const productProcessor = ($, name) => {
   const config = targetConf.list.find(item => item.name === name);
   const titleDom = $("div[id^='message_'] p:first-child").filter(function() {
-    return this.text().includes(config.group)
+    return $(this).text().includes(config.group)
   })
-  const torrent = titleDom.first().parents('.post').find('tr td a').last().attr('href');
+  const aTag = titleDom.first().parents('.post').find('tr td a').last();
+  const torrent = aTag.attr('href');
+  const filename = aTag.text();
   const result = torrent.match(/attach\-dialog\-fid\-([0-9]+)\-aid\-([0-9]+)\.htm/);
   const aid = result[2];
   if (config.id !== aid) {
-    return host + `attach-download-fid-${result[1]}-aid-${result[2]}.htm`;
+    return { uri: targetConf.host + `attach-download-fid-${result[1]}-aid-${result[2]}.htm`, filename };
   } else {
     return false;
   }
 }
+var download = new Crawler({
+  encoding:null,
+  jQuery:false,// set false to suppress warning message.
+  callback:function(err, res, done){
+      if(err){
+          console.error(err.stack);
+      }else{
+          fs.createWriteStream(res.options.filename).write(res.body);
+      }
+      
+      done();
+  }
+});
+
 // const torrent = new Crawler()
 const product = new Crawler({
   maxConnections : 10,
@@ -65,8 +79,8 @@ const product = new Crawler({
           console.log(error);
       }else{
           var $ = res.$;
-          const uri = productProcessor($, res.options.uri);
-          console.log("🚀 ~ file: index.js ~ line 69 ~ uri", uri)
+          const options = productProcessor($, res.options.name);
+          download.queue(options)
       }
       done();
   }
@@ -80,7 +94,7 @@ const enter = new Crawler({
       }else{
           var $ = res.$;
           tmpList = enterProcessor($);
-          tmpList.forEach(item => product.queue(item.url))
+          tmpList.forEach(item => product.queue({ uri: item.url, name: item.name }))
       }
       done();
   }
