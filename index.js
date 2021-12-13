@@ -73,20 +73,22 @@ var download = new Crawler({
       console.error(err.stack);
     } else {
       const torrentPath = path.join(__dirname, './torrent');
+      const dname = res.options.dname.replace(/\//g, ' ');
+      const filename = res.options.filename.replace(/\//g, ' ');
       try {
         fs.mkdirSync(torrentPath);
       } catch (e) { 
         if (e.code !== 'EEXIST')
         console.error(e)
       }
-      const filePath = path.join(torrentPath, res.options.dname);
+      const filePath = path.join(torrentPath, dname);
       try {
         fs.mkdirSync(filePath);
       } catch(e) {
         if (e.code !== 'EEXIST')
         console.error(e)
       }
-      const file = path.join(filePath, res.options.filename);
+      const file = path.join(filePath, filename);
       try {
         fs.createWriteStream(file).write(res.body);
         const config = getConfig(res.options.dname);
@@ -114,7 +116,9 @@ const product = new Crawler({
     } else {
       var $ = res.$;
       const options = productProcessor($, res.options.name);
-      download.queue({ ...options, dname: res.options.name })
+      if (options) {
+        download.queue({ ...options, dname: res.options.name })
+      }
     }
     done();
   }
