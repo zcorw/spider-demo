@@ -1,9 +1,11 @@
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const Crawler = require("crawler");
 const YAML = require('yaml');
 const targetYml = fs.readFileSync(path.join(__dirname, './target.yml'), 'utf8');
 const targetConf = YAML.parse(targetYml);
+const { updated, failed, over, yamlUpdateFailed } = require('./sendMessage');
 let tmpList = [];
 // 从配置中获取到对应剧的区块
 const getConfig = (name) => {
@@ -56,8 +58,8 @@ const productProcessor = ($, name) => {
   const result = torrent.match(/attach\-dialog\-fid\-([0-9]+)\-aid\-([0-9]+)\.htm/);
   const aid = result[2];
   if (config.id !== aid) {
-    return { 
-      uri: targetConf.host + `attach-download-fid-${result[1]}-aid-${result[2]}.htm`, 
+    return {
+      uri: targetConf.host + `attach-download-fid-${result[1]}-aid-${result[2]}.htm`,
       filename,
       id: aid,
     };
@@ -77,23 +79,23 @@ var download = new Crawler({
       const filename = res.options.filename.replace(/\//g, ' ');
       try {
         fs.mkdirSync(torrentPath);
-      } catch (e) { 
+      } catch (e) {
         if (e.code !== 'EEXIST')
-        console.error(e)
+          console.error(e)
       }
       const filePath = path.join(torrentPath, dname);
       try {
         fs.mkdirSync(filePath);
-      } catch(e) {
+      } catch (e) {
         if (e.code !== 'EEXIST')
-        console.error(e)
+          console.error(e)
       }
       const file = path.join(filePath, filename);
       try {
         fs.createWriteStream(file).write(res.body);
         const config = getConfig(res.options.dname);
         config.id = res.options.id;
-      }catch(e) {
+      } catch (e) {
         console.error(e);
       }
     }
@@ -102,8 +104,13 @@ var download = new Crawler({
   }
 });
 download.on('drain', () => {
-  const yamlStr = YAML.stringify(targetConf);
-  fs.writeFileSync('./target.yml', yamlStr);
+  try {
+    const yamlStr = YAML.stringify(targetConf);
+    fs.writeFileSync('./target.yml', yamlStr);
+    over();
+  } catch (e) {
+    yamlUpdateFailed(e.message)
+  }
 })
 
 // const torrent = new Crawler()
@@ -117,7 +124,12 @@ const product = new Crawler({
       var $ = res.$;
       const options = productProcessor($, res.options.name);
       if (options) {
-        download.queue({ ...options, dname: res.options.name })
+        updated(res.options.name);
+        try {
+          download.queue({ ...options, dname: res.options.name })
+        } catch (e) {
+          failed(res.options.name, e.message);
+        }
       }
     }
     done();
