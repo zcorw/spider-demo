@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Crawler = require("crawler");
 const YAML = require('yaml');
-const targetYml = fs.readFileSync(paht.join(__dirname, './target.yml'), 'utf8');
+const targetYml = fs.readFileSync(path.join(__dirname, './target.yml'), 'utf8');
 const targetConf = YAML.parse(targetYml);
 let tmpList = [];
 // 从配置中获取到对应剧的区块
