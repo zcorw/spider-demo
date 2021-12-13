@@ -1,10 +1,13 @@
 const axios = require('axios');
+const sendP = axios.create({
+  baseURL: process.env.DING_URL
+});
 
-axios.defaults.headers.post["Content-Type"] = "application/json;charset=UTF-8";
-axios.defaults.headers.get["Cache-Control"] = "no-cache";
+sendP.defaults.headers.post["Content-Type"] = "application/json;charset=UTF-8";
+sendP.defaults.headers.get["Cache-Control"] = "no-cache";
 
 exports.updated = (name) => {
-  axios.post(process.env.DING_URL, { 
+  sendP.post('', { 
     msgtype: "text", 
     text: { 
       content: `欧尼酱 ${name}更新了`
@@ -13,7 +16,7 @@ exports.updated = (name) => {
 }
 
 exports.failed = (name, errorMsg) => {
-  axios.post(process.env.DING_URL, { 
+  sendP.post('', { 
     msgtype: "text", 
     text: { 
       content: `欧尼酱 ${name}下载失败了，好像是这么说的\n${errorMsg}`
@@ -22,7 +25,7 @@ exports.failed = (name, errorMsg) => {
 }
 
 exports.over = () => {
-  axios.post(process.env.DING_URL, {
+  sendP.post('', {
     msgtype: "text", 
     text: { 
       content: `欧尼酱 种子下载好了`
@@ -31,7 +34,7 @@ exports.over = () => {
 }
 
 exports.yamlUpdateFailed = (errorMsg) => {
-  axios.post(process.env.DING_URL, {
+  sendP.post('', {
     msgtype: "text", 
     text: { 
       content: `欧尼酱 配置更新失败了，好像是这么说的\n${errorMsg}`
