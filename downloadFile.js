@@ -16,8 +16,24 @@ const readFileList = (dir, filesList = []) => {
   })
   return filesList;
 }
+const delDirFiles = (dirPath, isDelDir = false) => {
+  if (fs.existsSync(dirPath)) {
+    const files = fs.readdirSync(dirPath);
+    files.forEach((file) => {
+      const fullPath = path.join(dirPath, file);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        delDirFiles(fullPath, true);
+      } else {
+        fs.unlinkSync(fullPath);
+      }
+    });
+    if (isDelDir) fs.rmdirSync(dirPath);
+  }
+}
 
 const torrentList = readFileList(path.join(__dirname, 'torrent'));
 torrentList.forEach(filePath => {
   torrentDownload(filePath, '/downloads/animes')
-})
+});
+delDirFiles(path.join(__dirname, 'torrent'));
