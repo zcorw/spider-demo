@@ -31,9 +31,10 @@ const delDirFiles = (dirPath, isDelDir = false) => {
     if (isDelDir) fs.rmdirSync(dirPath);
   }
 }
-
-const torrentList = readFileList(path.join(__dirname, 'torrent'));
-torrentList.forEach(filePath => {
-  torrentDownload(filePath, '/downloads/animes')
-});
-delDirFiles(path.join(__dirname, 'torrent'));
+module.exports = () => {
+  const torrentList = readFileList(path.join(__dirname, 'torrent'));
+  torrentList.forEach(filePath => {
+    torrentDownload(filePath, '/downloads/animes')
+  });
+  delDirFiles(path.join(__dirname, 'torrent'));
+}

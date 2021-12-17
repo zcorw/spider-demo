@@ -149,5 +149,4 @@ const enter = new Crawler({
     done();
   }
 })
-
-enter.queue(targetConf.url)
+module.exports = () => enter.queue(targetConf.url)
