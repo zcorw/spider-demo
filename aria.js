@@ -29,3 +29,12 @@ exports.torrentDownload = async (torrentPath, fileDir) => {
     params: [process.env.ARIA_TOKEN, base64, [], { dir: fileDir }]
   })
 }
+
+exports.uriDownload = async (uri, fileDir) => {
+  return ariaP.post('/jsonrpc', {
+    id: generateUniqueId(),
+    jsonrpc: "2.0",
+    method: "aria2.addUri",
+    params: [process.env.ARIA_TOKEN, [uri], { dir: fileDir }]
+  })
+}
